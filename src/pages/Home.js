@@ -125,6 +125,14 @@ const Home = () => {
   const { username } = location.state;
   console.log(username);
 
+  const today  = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth()+1;
+  const day = today.getDate();
+  const formattedDate =  `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+
+  console.log(formattedDate);
+
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   useEffect(() => {
@@ -135,7 +143,7 @@ const Home = () => {
         setAccuracy(position.coords.accuracy);
         
         console.log(latitude, longitude, accuracy);
-        Axios.post("https://project-2-backend-ten.vercel.app/home", { _id: username, latitude: latitude, longitude: longitude, accuracy: accuracy }).then(function (response) {
+        Axios.post("https://project-2-backend-ten.vercel.app/home", { _id: username, latitude: latitude, longitude: longitude, accuracy: accuracy,formattedDate:formattedDate }).then(function (response) {
           console.log(response);
         })
       });
@@ -144,6 +152,7 @@ const Home = () => {
 
   }, [latitude, longitude])
 
+  
 
   return (
    
