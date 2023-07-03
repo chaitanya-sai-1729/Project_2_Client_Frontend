@@ -136,24 +136,32 @@ const Home = () => {
   
   useEffect(() => {
     const locationQueue = []; // Queue to store location data
+    let previousLatitude = null;
+    let previousLongitude = null;
   
     const processQueue = () => {
       if (locationQueue.length > 0) {
         const locationData = locationQueue.shift(); // Get the first location data from the queue
         const { latitude, longitude, accuracy, formattedDate } = locationData;
   
-        Axios.post("https://project-2-backend-ten.vercel.app/home", {
-          _id: username,
-          latitude: latitude,
-          longitude: longitude,
-          accuracy: accuracy,
-          formattedDate: formattedDate,
-        }).then(function (response) {
-          console.log(response);
+        // Check if the current location is different from the previous one
+        if (latitude !== previousLatitude || longitude !== previousLongitude) {
+          Axios.post("https://project-2-backend-ten.vercel.app/home", {
+            _id: username,
+            latitude: latitude,
+            longitude: longitude,
+            accuracy: accuracy,
+            formattedDate: formattedDate,
+          }).then(function (response) {
+            console.log(response);
+          });
+        }
   
-          // Process the next location in the queue
-          processQueue();
-        });
+        previousLatitude = latitude; // Update the previous latitude
+        previousLongitude = longitude; // Update the previous longitude
+  
+        // Process the next location in the queue
+        processQueue();
       }
     };
   
@@ -183,6 +191,7 @@ const Home = () => {
       clearInterval(intervalId);
     };
   }, [formattedDate]);
+  
   
 
   
