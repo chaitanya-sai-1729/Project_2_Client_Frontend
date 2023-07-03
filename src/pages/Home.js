@@ -131,26 +131,59 @@ const Home = () => {
   const day = today.getDate();
   const formattedDate =  `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
 
-  console.log(formattedDate);
-
+  
   const { isOpen, onOpen, onClose } = useDisclosure();
-
+  
   useEffect(() => {
-    setInterval(function () {
-      navigator.geolocation.getCurrentPosition((position) => {
-        setLatitude(position.coords.latitude);
-        setLongitude(position.coords.longitude);
-        setAccuracy(position.coords.accuracy);
-        
-        console.log(latitude, longitude, accuracy);
-        Axios.post("https://project-2-backend-ten.vercel.app/home", { _id: username, latitude: latitude, longitude: longitude, accuracy: accuracy,formattedDate:formattedDate }).then(function (response) {
+    const locationQueue = []; // Queue to store location data
+  
+    const processQueue = () => {
+      if (locationQueue.length > 0) {
+        const locationData = locationQueue.shift(); // Get the first location data from the queue
+        const { latitude, longitude, accuracy, formattedDate } = locationData;
+  
+        Axios.post("https://project-2-backend-ten.vercel.app/home", {
+          _id: username,
+          latitude: latitude,
+          longitude: longitude,
+          accuracy: accuracy,
+          formattedDate: formattedDate,
+        }).then(function (response) {
           console.log(response);
-        })
+  
+          // Process the next location in the queue
+          processQueue();
+        });
+      }
+    };
+  
+    const updateLocationAndQueue = () => {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        const locationData = {
+          latitude,
+          longitude,
+          accuracy,
+          formattedDate: formattedDate, // Make sure formattedDate is defined or updated correctly
+        };
+  
+        console.log(latitude, longitude, accuracy);
+  
+        locationQueue.push(locationData); // Add the location data to the queue
+        processQueue(); // Process the location data in the queue
       });
-    }, 1 * 60000);
-
-
-  }, [latitude, longitude])
+    };
+  
+    // Run the function immediately and then every minute
+    updateLocationAndQueue();
+    const intervalId = setInterval(updateLocationAndQueue, 60000);
+  
+    // Clean up the interval when the component unmounts or the dependencies change
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [formattedDate]);
+  
 
   
 
